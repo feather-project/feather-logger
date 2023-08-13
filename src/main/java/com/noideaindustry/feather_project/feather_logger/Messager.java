@@ -19,4 +19,8 @@ public class Messager {
     public static MessageModel debug(final String message) {
         return new MessageModel(message, MessageLevel.DEBUG);
     }
+
+    public static MessageModel custom(final String message, final MessageLevel level) {
+        return new MessageModel(message, level);
+    }
 }
