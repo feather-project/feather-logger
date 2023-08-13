@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.List;
 
 public class FileManager {
     private static final String root = System.getProperty("user.dir");
-    private static final String id = "cache";
+    private static final String id = "storage";
 
     static {
         try { Files.createDirectories(Paths.get(root, id));}
@@ -38,5 +40,15 @@ public class FileManager {
     }
     public static List<String> readLines(final String name) throws IOException {
         return readLines(Paths.get(root, id, name).toFile());
+    }
+
+    public static void writeFile(final String name, final List<String> lines) throws IOException {
+        final var path = createFile(name);
+        final var combinedLines = String.join("", lines.stream().map("%s\n"::formatted).toList());
+        Files.writeString(path, combinedLines, StandardOpenOption.APPEND);
+    }
+
+    public static void writeFile(final String name, final String... lines) throws IOException {
+        writeFile(name, Arrays.stream(lines).toList());
     }
 }

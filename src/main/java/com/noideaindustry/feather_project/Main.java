@@ -1,10 +1,10 @@
 package com.noideaindustry.feather_project;
 
 import com.noideaindustry.feather_project.feather_logger.Logger;
+import org.springframework.boot.SpringApplication;
 
 public class Main {
     public static void main(String[] args) {
-        try { Logger.get().start(); }
-        catch (Exception e) { e.printStackTrace(); }
+        SpringApplication.run(Logger.class, args);
     }
 }

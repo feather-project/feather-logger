@@ -2,7 +2,10 @@ plugins {
     id 'base'
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id "org.springframework.boot" version "3.1.2"
 }
+
+apply plugin: 'io.spring.dependency-management'
 
 shadowJar {
     archiveClassifier = ''
@@ -27,6 +30,12 @@ dependencies {
 
     // https://mvnrepository.com/artifact/commons-io/commons-io
     implementation 'commons-io:commons-io:2.13.0'
+
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 compileJava {
