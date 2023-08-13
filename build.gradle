@@ -8,11 +8,25 @@ shadowJar {
     archiveClassifier = ''
 }
 
+base {
+    archivesName = "feather-logger"
+}
+
 group 'com.noideaindustry.feather_project'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://jitpack.io'
+    }
+}
 
 dependencies {
     // https://mvnrepository.com/artifact/io.github.cdimascio/java-dotenv
     implementation 'io.github.cdimascio:java-dotenv:5.3.1'
+
+    // https://mvnrepository.com/artifact/commons-io/commons-io
+    implementation 'commons-io:commons-io:2.13.0'
 }
 
 compileJava {
