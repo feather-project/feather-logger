@@ -22,13 +22,10 @@ public class SessionManager {
 
         this.sessions.putIfAbsent(uuid, new HashMap<>());
         this.sessions.get(uuid).put(id, session);
-
-        System.out.printf("Added session %s.%n", id);
     }
 
     public void removeSession(final String uuid, final String id) {
         this.sessions.get(uuid).remove(id);
-        System.out.println("Removed session.");
     }
 
     public void broadcast(final String uuid, final JsonObject jsonObject) {
