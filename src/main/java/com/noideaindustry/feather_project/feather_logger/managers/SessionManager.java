@@ -1,10 +1,7 @@
 package com.noideaindustry.feather_project.feather_logger.managers;
 
 import com.google.gson.JsonObject;
-import com.noideaindustry.feather_project.feather_logger.Logger;
 import com.noideaindustry.feather_project.feather_logger.utils.ConstantUtils;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;

@@ -6,19 +6,10 @@ import com.noideaindustry.feather_project.feather_logger.miscellaneous.LogLevel;
 import java.time.Instant;
 import java.util.regex.Pattern;
 
-public class LogModel {
-    private static final String _pattern = "(\\d{13}) - (\\[(.*?)]) > (.*)";
-    private static final Pattern _regex = Pattern.compile(_pattern, Pattern.MULTILINE);
-
+public abstract class LogModel {
     private final long timestamp;
     private final String message;
     private final LogLevel level;
-
-    public LogModel(final String message, final LogLevel level) {
-        this.timestamp = Instant.now().toEpochMilli();
-        this.message = message;
-        this.level = level;
-    }
 
     public LogModel(final long timestamp, final String message, final LogLevel level) {
         this.timestamp = timestamp;
@@ -26,17 +17,20 @@ public class LogModel {
         this.level = level;
     }
 
-    public static LogModel fromLine(final String line) {
-        final var matcher = _regex.matcher(line);
+    public LogModel(final String message, final LogLevel level) {
+        this.timestamp = Instant.now().toEpochMilli();
+        this.message = message;
+        this.level = level;
+    }
 
-        if(!matcher.matches()) return null;
+    public LogModel(final String line) throws Exception {
+        final var matcher = this.getPattern().matcher(line);
 
-        return new LogModel(
-            Long.parseLong(matcher.group(1)),
-            matcher.group(4),
-            LogLevel.fromInput(matcher.group(3))
-        );
+        if(!matcher.matches()) throw new Exception("M");
 
+       this.timestamp = Long.parseLong(matcher.group(1));
+       this.message = matcher.group(4);
+       this.level = LogLevel.fromInput(matcher.group(3));
     }
 
     public String getAsLine() {
@@ -51,4 +45,19 @@ public class LogModel {
         return jsonObject;
     }
 
+    public Pattern getPattern() {
+        return Pattern.compile("(\\d{13}) - (\\[(.*?)]) > (.*)");
+    }
+
+    public long getTimestamp() {
+        return this.timestamp;
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+
+    public LogLevel getLevel() {
+        return this.level;
+    }
 }
