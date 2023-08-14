@@ -1,5 +1,6 @@
 package com.noideaindustry.feather_project.feather_logger.models;
 
+import com.google.gson.JsonObject;
 import com.noideaindustry.feather_project.feather_logger.miscellaneous.LogLevel;
 
 import java.time.Instant;
@@ -14,6 +15,13 @@ public class LogModel {
     }
 
     public String getAsLine() {
-        return "%d | [%s] - %s".formatted(Instant.now().toEpochMilli(), this.level.getLevel(), this.message);
+        return "%d | [%s] - %s".formatted(Instant.now().toEpochMilli(), this.level.getName(), this.message);
+    }
+
+    public JsonObject getAsJson() {
+        final var jsonObject = new JsonObject();
+        jsonObject.addProperty("message", this.message);
+        jsonObject.addProperty("level", this.level.getName());
+        return jsonObject;
     }
 }

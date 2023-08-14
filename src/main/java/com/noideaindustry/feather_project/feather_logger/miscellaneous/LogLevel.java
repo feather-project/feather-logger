@@ -8,11 +8,11 @@ public class LogLevel {
     public static LogLevel INFO = new LogLevel("Info", ConsoleColor.BLUE);
     public static LogLevel DEBUG = new LogLevel("Debug", ConsoleColor.PURPLE);
 
-    private final String level;
-    private final ConsoleColor color;
+    private final String name;
+    private transient final ConsoleColor color;
 
-    private LogLevel(final String level, final ConsoleColor color) {
-        this.level = level;
+    private LogLevel(final String name, final ConsoleColor color) {
+        this.name = name;
         this.color = color;
     }
 
@@ -20,8 +20,8 @@ public class LogLevel {
         return this.color;
     }
 
-    public String getLevel() {
-        return this.level;
+    public String getName() {
+        return this.name;
     }
 
     public static LogLevel fromInput(final String input) {
