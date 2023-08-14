@@ -19,6 +19,7 @@ public class FileManager {
         try { Files.createDirectories(Paths.get(root, id));}
         catch (IOException e) { throw new RuntimeException(e); }
     }
+
     public static Path createFile(final String name) throws IOException {
         final var path = Paths.get(root, id, name);
         if(Files.exists(path)) return path;
@@ -46,9 +47,5 @@ public class FileManager {
         final var path = createFile(name);
         final var combinedLines = String.join("", lines.stream().map("%s\n"::formatted).toList());
         Files.writeString(path, combinedLines, StandardOpenOption.APPEND);
-    }
-
-    public static void writeFile(final String name, final String... lines) throws IOException {
-        writeFile(name, Arrays.stream(lines).toList());
     }
 }

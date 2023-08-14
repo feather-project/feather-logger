@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ConstantUtils {
     public static final Gson GSON = new Gson();
+    public static final ScheduledExecutorService SCHEDULE = Executors.newScheduledThreadPool(1);
     public static final Executor ASYNC = Executors.newCachedThreadPool();
 }
