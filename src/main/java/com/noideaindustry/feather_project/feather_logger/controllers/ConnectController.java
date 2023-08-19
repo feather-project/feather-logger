@@ -13,9 +13,9 @@ import java.io.IOException;
 @RequestMapping("/sse/v1/logger")
 public class ConnectController {
     @GetMapping("/connect")
-    public SseEmitter readLogs(@RequestParam(name = "uuid") final String uuid, @RequestParam(name = "id") final String id) {
+    public SseEmitter readLogs(@RequestParam(name = "uuid") final String uuid) {
         final var emitter = new SseEmitter(Long.MAX_VALUE);
-        Logger.get().getSessionManager().addSession(uuid, id, emitter);
+        Logger.get().getSessionManager().addSession(uuid, emitter);
 
         try { emitter.send(SseEmitter.event().comment("Successfully connected.")); }
         catch (IOException e) { emitter.completeWithError(e); }
