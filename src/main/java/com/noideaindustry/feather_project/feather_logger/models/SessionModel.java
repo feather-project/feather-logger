@@ -1,30 +1,24 @@
 package com.noideaindustry.feather_project.feather_logger.models;
 
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.eclipse.jetty.websocket.api.Session;
 
 public class SessionModel {
-    private final SseEmitter emitter;
-    private final String uuid;
-    private String id;
+    private String subscription;
+    private final Session stream;
 
-    public SessionModel(final String uuid, final SseEmitter emitter) {
-        this.emitter = emitter;
-        this.uuid = uuid;
+    public SessionModel(final Session session) {
+        this.stream = session;
     }
 
-    public String getUuid() {
-        return this.uuid;
+    public String getSubscription() {
+        return this.subscription;
     }
 
-    public SseEmitter getEmitter() {
-        return this.emitter;
+    public void setSubscription(final String subscription) {
+        this.subscription = subscription;
     }
 
-    public void setId(final String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return this.id;
+    public Session getStream() {
+        return this.stream;
     }
 }

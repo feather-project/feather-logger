@@ -23,14 +23,19 @@ public abstract class LogModel {
         this.level = level;
     }
 
-    public LogModel(final String line) throws Exception {
+    public LogModel(final String line) {
         final var matcher = this.getPattern().matcher(line);
-
-        if(!matcher.matches()) throw new Exception("M");
+        matcher.matches();
 
        this.timestamp = Long.parseLong(matcher.group(1));
        this.message = matcher.group(4);
        this.level = LogLevel.fromInput(matcher.group(3));
+    }
+
+    public LogModel(final JsonObject jsonObject) {
+        this.timestamp = Instant.now().toEpochMilli();
+        this.message = jsonObject.get("message").getAsString();
+        this.level = LogLevel.fromInput(jsonObject.get("level").getAsString());
     }
 
     public String getAsLine() {

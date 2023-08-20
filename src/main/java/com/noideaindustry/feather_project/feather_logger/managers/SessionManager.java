@@ -1,42 +1,72 @@
 package com.noideaindustry.feather_project.feather_logger.managers;
 
 import com.google.gson.JsonObject;
+import com.noideaindustry.feather_project.feather_logger.models.SessionModel;
 import com.noideaindustry.feather_project.feather_logger.utils.ConstantUtils;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.eclipse.jetty.websocket.api.Session;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class SessionManager {
-    private final Map<String, SseEmitter> sessions = new ConcurrentHashMap<>();
+    private final Map<String, SessionModel> sessions = new ConcurrentHashMap<>();
 
-    public void addSession(final String uuid, final SseEmitter session) {
-        session.onCompletion(() -> this.removeSession(uuid));
-        this.sessions.putIfAbsent(uuid, session);
-
-        System.out.printf("Added session at '%s'%n", uuid);
+    public SessionManager() {
+        ConstantUtils.SHEDULE.scheduleAtFixedRate(this::heartbeat, 45, 45, TimeUnit.SECONDS);
     }
 
-    public void removeSession(final String uuid) {
-        this.sessions.remove(uuid);
-
-        System.out.printf("Removed session at: '%s'%n", uuid);
+    public void add(final String clientId, final SessionModel model) {
+        this.sessions.put(clientId, model);
     }
 
-    public void broadcast(final String uuid, final JsonObject jsonObject) {
-        final var session = this.sessions.get(uuid);
-        if(session == null) return;
-
-        try { session.send(ConstantUtils.GSON.toJson(jsonObject)); }
-        catch (IOException ignored) { }
+    public void remove(final String clientId) {
+        this.sessions.remove(clientId);
     }
 
-    public void heartbeat() {
-        this.sessions.values().forEach(session -> {
-            try { session.send(SseEmitter.event().comment("Heartbeat")); }
-            catch (IOException e) { session.complete(); }
-        });
+    public SessionModel getById(final String clientId) {
+        return this.sessions.get(clientId);
+    }
+
+    public boolean isClosed(final String clientId) {
+        return getById(clientId).getStream().isOpen();
+    }
+
+    public void send(final Session stream, final String content) {
+        try { stream.getRemote().sendString(content); }
+        catch (Exception e) { System.out.printf("Sending content failed at '%s'%n", stream.getLocalAddress()); }
+    }
+
+    public void send(final Session stream, final JsonObject payload) {
+        this.send(stream, ConstantUtils.GSON.toJson(payload));
+    }
+
+    public void broadcast(final JsonObject payload) {
+        this.sessions.forEach((clientId, stream) -> this.send(stream.getStream(), payload));
+    }
+
+    public void broadcast(final String content) {
+        this.sessions.forEach((clientId, stream) -> this.send(stream.getStream(), content));
+    }
+
+    public void disconnect(final String clientId, final int code, final String reason, final String error) {
+        try (final var stream = this.sessions.remove(clientId).getStream()) {
+            final var payload = new JsonObject();
+            payload.addProperty("code", code);
+            payload.addProperty("reason", reason);
+            if (error != null) payload.addProperty("error", error);
+
+            this.send(stream, payload);
+        }
+    }
+
+    private void heartbeat() {
+        final int size = this.sessions.size();
+        if(size == 0) return;
+
+        System.out.printf("Sending heartbeat signal to '%d' sessions.%n", size);
+        this.broadcast("Heartbeat");
     }
 }
 

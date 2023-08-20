@@ -42,9 +42,14 @@ public class FileManager {
         return readLines(Paths.get(root, id, name).toFile());
     }
 
-    public static void writeFile(final String name, final List<String> lines) throws IOException {
+    public static void writeLines(final String name, final List<String> lines) throws IOException {
         final var path = createFile(name);
         final var combinedLines = String.join("", lines.stream().map("%s\n"::formatted).toList());
         Files.writeString(path, combinedLines, StandardOpenOption.APPEND);
+    }
+
+    public static void writeLine(final String name, final String line) throws IOException {
+        final var path = createFile(name);
+        Files.writeString(path, line + '\n', StandardOpenOption.APPEND);
     }
 }

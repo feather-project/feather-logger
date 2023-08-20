@@ -9,38 +9,42 @@ import com.noideaindustry.feather_project.feather_logger.models.LogModel;
 import com.noideaindustry.feather_project.feather_logger.utils.ConstantUtils;
 import com.noideaindustry.feather_project.feather_logger.utils.RequestUtils;
 import com.noideaindustry.feather_project.feather_logger.utils.ResponseUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("/api/v1/logger")
-public class RegisterController {
-    @PostMapping("/logs")
-    public String registerLogs(@RequestBody final String body) {
-        try {
-            final var payload = RequestUtils.getBody(body);
+import spark.Spark;
+import spark.route.HttpMethod;
 
-            final var uuid = payload.get("uuid").getAsString();
-            final var element = payload.get("logs").getAsJsonArray();
+public class RegisterController extends Controller {
+    public RegisterController() {
+        super("/logs", HttpMethod.post);
+    }
 
-            final var logs = element.asList().stream()
-                .map(JsonElement::getAsJsonObject)
-                .map(log -> LogBuilder.fromInput(log.get("level").getAsString(), log.get("message").getAsString()))
-                .toList();
+    @Override
+    public void initialize() {
+        Spark.post(super.getFull(), (request, response) -> {
+            try {
+                final var payload = RequestUtils.getBody(request.body());
+                if (payload == null) return ResponseUtils.badRequest("Request payload is not valid.");
 
-            FileManager.writeFile(uuid, logs.stream().map(LogModel::getAsLine).toList());
+                final var fileId = payload.get("fileId").getAsString();
+                final var element = payload.get("logs").getAsJsonArray();
 
-            ConstantUtils.ASYNC.execute(() -> {
-                final var jsonObject = new JsonObject();
-                jsonObject.add("logs", ConstantUtils.GSON.toJsonTree(logs.stream().map(LogModel::getAsJson).toList()));
-                Logger.get().getSessionManager().broadcast(uuid, jsonObject);
-            });
+                final var logs = element.asList().stream()
+                        .map(JsonElement::getAsJsonObject)
+                        .map(log -> LogBuilder.fromInput(log.get("level").getAsString(), log.get("message").getAsString()))
+                        .toList();
 
-            return ResponseUtils.ok("Registered logs successfully.");
-        } catch (Exception e) {
-            return ResponseUtils.internalServerError(e.getLocalizedMessage());
-        }
+                FileManager.writeLines(fileId, logs.stream().map(LogModel::getAsLine).toList());
+
+                ConstantUtils.ASYNC.execute(() -> {
+                    final var jsonObject = new JsonObject();
+                    jsonObject.add("logs", ConstantUtils.GSON.toJsonTree(logs.stream().map(LogModel::getAsJson).toList()));
+                    Logger.get().getSessionManager().broadcast(jsonObject);
+                });
+
+                return ResponseUtils.ok("Successfully written '%d' logs in specified file.".formatted(logs.size()));
+            } catch (Exception e) {
+                return ResponseUtils.internalServerError(e.getMessage());
+            }
+        });
     }
 }
