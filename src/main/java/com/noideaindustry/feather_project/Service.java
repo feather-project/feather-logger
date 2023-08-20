@@ -1,6 +1,7 @@
 package com.noideaindustry.feather_project;
 
 import com.noideaindustry.feather_project.feather_logger.controllers.Controller;
+import com.noideaindustry.feather_project.feather_logger.controllers.FetchController;
 import com.noideaindustry.feather_project.feather_logger.controllers.RegisterController;
 import com.noideaindustry.feather_project.feather_logger.websocket.SocketHandler;
 import spark.Spark;
@@ -19,6 +20,7 @@ public class Service {
     private void setup() {
         // Subscribe controllers
         this.controllers.add(new RegisterController());
+        this.controllers.add(new FetchController());
 
         // Initialise controllers
         this.controllers.forEach(Controller::initialize);

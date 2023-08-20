@@ -5,7 +5,6 @@ import com.noideaindustry.feather_project.feather_logger.models.SessionModel;
 import com.noideaindustry.feather_project.feather_logger.utils.ConstantUtils;
 import org.eclipse.jetty.websocket.api.Session;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,7 @@ public class SessionManager {
     private final Map<String, SessionModel> sessions = new ConcurrentHashMap<>();
 
     public SessionManager() {
-        ConstantUtils.SHEDULE.scheduleAtFixedRate(this::heartbeat, 45, 45, TimeUnit.SECONDS);
+        ConstantUtils.SCHEDULE.scheduleAtFixedRate(this::heartbeat, 45, 45, TimeUnit.SECONDS);
     }
 
     public void add(final String clientId, final SessionModel model) {

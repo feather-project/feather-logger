@@ -9,5 +9,5 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ConstantUtils {
     public static final Gson GSON = new Gson();
     public static final Executor ASYNC = Executors.newCachedThreadPool();
-    public static final ScheduledExecutorService SHEDULE = Executors.newScheduledThreadPool(1);
+    public static final ScheduledExecutorService SCHEDULE = Executors.newScheduledThreadPool(1);
 }

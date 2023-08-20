@@ -37,6 +37,8 @@ public class RegisterController extends Controller {
 
                 ConstantUtils.ASYNC.execute(() -> {
                     final var jsonObject = new JsonObject();
+                    jsonObject.addProperty("event", "broadcast");
+                    jsonObject.addProperty("size", logs.size());
                     jsonObject.add("logs", ConstantUtils.GSON.toJsonTree(logs.stream().map(LogModel::getAsJson).toList()));
                     Logger.get().getSessionManager().broadcast(jsonObject);
                 });
