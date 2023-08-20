@@ -15,6 +15,9 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
+import java.io.File;
+import java.util.List;
+
 @WebSocket
 public class SocketHandler {
     private final SessionManager manager = Logger.get().getSessionManager();
@@ -26,12 +29,12 @@ public class SocketHandler {
             this.manager.add(query.get("clientId").getAsString(), new SessionModel(stream));
             System.out.printf(
                 "Client connection accepted at '%s'%n",
-                    stream.getRemoteAddress()
+                stream.getRemoteAddress()
             );
         } catch (Exception e) {
             System.out.printf(
                 "Client connection rejected at '%s'%n",
-                    stream.getRemoteAddress()
+                stream.getRemoteAddress()
             );
         }
     }
@@ -62,12 +65,27 @@ public class SocketHandler {
             final var request = payload.getRequest();
 
             switch (request) {
+                case "listen" -> {
+                    this.manager.get(query.get("clientId").getAsString()).setFileId(fileId);
+                    
+                    this.manager.send(stream, request, "Currently listening to '%s'.".formatted(fileId));
+                }
+                case "list" -> {
+                    final var files = FileManager.getFiles();
+                    final List<String> names = files.stream().map(File::getName).toList();
+
+                    final var jsonObject = new JsonObject();
+                    jsonObject.add("files", ConstantUtils.GSON.toJsonTree(names));
+
+                    this.manager.send(stream, request, jsonObject);
+                }
                 case "create.single" -> {
                     final var content = payload.getContent();
 
                     final var log = new DefaultLogModel(content.get("log").getAsJsonObject());
                     FileManager.writeLine(fileId, log.getAsLine());
-                    this.manager.send(stream, "Successfully written log in specified file.");
+
+                    this.manager.send(stream, request, "Successfully written log in specified file.");
                 }
                 case "create.multiple" -> {
                     final var content = payload.getContent();
@@ -76,12 +94,13 @@ public class SocketHandler {
                     final var logs = entries.stream().map(entry -> new DefaultLogModel(entry.getAsJsonObject())).toList();
 
                     FileManager.writeLines(fileId, logs.stream().map(LogModel::getAsLine).toList());
-                    this.manager.send(stream, "Successfully written logs in specified file.");
+
+                    this.manager.send(stream, request, "Successfully written logs in specified file.");
                 }
-                case "get.matching" -> {
+                case "fetch.matching" -> {
 
                 }
-                case "get.all" -> {
+                case "fetch.all" -> {
                     final var lines = FileManager.readLines(fileId);
                     final var logs = lines.stream().map(DefaultLogModel::new).toList();
 
@@ -89,7 +108,7 @@ public class SocketHandler {
                     jsonObject.addProperty("size", logs.size());
                     jsonObject.add("logs", ConstantUtils.GSON.toJsonTree(logs));
 
-                    this.manager.send(stream, jsonObject);
+                    this.manager.send(stream, "fetch.all", jsonObject);
                 }
             }
         } catch (Exception e) {

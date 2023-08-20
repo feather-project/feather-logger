@@ -11,9 +11,11 @@ import java.util.concurrent.TimeUnit;
 
 public class SessionManager {
     private final Map<String, SessionModel> sessions = new ConcurrentHashMap<>();
+    private final int delay = 45;
 
     public SessionManager() {
-        ConstantUtils.SCHEDULE.scheduleAtFixedRate(this::heartbeat, 45, 45, TimeUnit.SECONDS);
+        ConstantUtils.SCHEDULE.scheduleAtFixedRate(this::heartbeat, delay, delay, TimeUnit.SECONDS);
+        System.out.printf("Scheduled heartbeat signal every '%d' seconds.%n", delay);
     }
 
     public void add(final String clientId, final SessionModel model) {
@@ -24,29 +26,46 @@ public class SessionManager {
         this.sessions.remove(clientId);
     }
 
-    public SessionModel getById(final String clientId) {
+    public SessionModel get(final String clientId) {
         return this.sessions.get(clientId);
     }
 
     public boolean isClosed(final String clientId) {
-        return getById(clientId).getStream().isOpen();
+        return get(clientId).getStream().isOpen();
     }
 
-    public void send(final Session stream, final String content) {
+    private void send(final Session stream, final String content) {
         try { stream.getRemote().sendString(content); }
         catch (Exception e) { System.out.printf("Sending content failed at '%s'%n", stream.getLocalAddress()); }
     }
 
-    public void send(final Session stream, final JsonObject payload) {
+    public void send(final Session stream, final String event, final JsonObject payload) {
+        payload.addProperty("event", event);
+        this.send(stream, ConstantUtils.GSON.toJson(payload));
+    }
+
+    public void send(final Session stream, final String event, final String message) {
+        final var payload = new JsonObject();
+        payload.addProperty("event", event);
+        payload.addProperty("message", message);
         this.send(stream, ConstantUtils.GSON.toJson(payload));
     }
 
     public void broadcast(final JsonObject payload) {
-        this.sessions.forEach((clientId, stream) -> this.send(stream.getStream(), payload));
+        this.sessions.forEach((clientId, session) -> this.send(session.getStream(), "broadcast", payload));
     }
 
     public void broadcast(final String content) {
-        this.sessions.forEach((clientId, stream) -> this.send(stream.getStream(), content));
+        this.sessions.forEach((clientId, session) -> this.send(session.getStream(), content));
+    }
+
+    public void broadcast(final String fileId, final JsonObject content) {
+        final var found = this.sessions.values()
+            .stream()
+            .filter(session -> session.getFileId().equals(fileId))
+            .toList();
+
+        found.forEach(session -> this.send(session.getStream(), "broadcast", content));
     }
 
     public void disconnect(final String clientId, final int code, final String reason, final String error) {
@@ -54,17 +73,15 @@ public class SessionManager {
             final var payload = new JsonObject();
             payload.addProperty("code", code);
             payload.addProperty("reason", reason);
-            if (error != null) payload.addProperty("error", error);
+            payload.addProperty("error", error);
 
-            this.send(stream, payload);
+            this.send(stream,"disconnect", payload);
         }
     }
 
     private void heartbeat() {
         final int size = this.sessions.size();
         if(size == 0) return;
-
-        System.out.printf("Sending heartbeat signal to '%d' sessions.%n", size);
         this.broadcast("Heartbeat");
     }
 }

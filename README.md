@@ -80,3 +80,11 @@ ws(s)://$HOST:$PORT/ws/v1/connect
   "request": "get.all"
 }
 ```
+
+<h4>Websocket listen to a specific file</h4>
+```json
+{
+    "fileId": "fileName",
+    "request": "listen"
+}
+```

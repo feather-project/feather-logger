@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.List;
 
 public class FileManager {
@@ -33,6 +34,10 @@ public class FileManager {
 
     public static Path getFile(final String name) {
         return Paths.get(root, id, name);
+    }
+
+    public static List<File> getFiles() {
+        return Arrays.stream(Paths.get(root, id).toFile().listFiles()).toList();
     }
 
     public static List<String> readLines(final File file) throws IOException {
